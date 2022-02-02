@@ -1,0 +1,25 @@
+name: Install Python dependencies with Pipenv and caching.
+description: |
+  Install Python dependencies with Pipenv.
+
+runs:
+  using: composite
+  steps:
+    - name: Get Python version
+      id: get-python-version
+      shell: bash
+      run: echo "::set-output name=python-version::$(cat .tool-versions | grep python | awk '{print $2}')"
+
+    - name: Install pipenv
+      shell: bash
+      run: pipx install pipenv
+
+    - name: Setup Python environment and cache
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ steps.get-python-version.outputs.python-version }}
+        cache: 'pipenv'
+
+    - name: Install dependencies
+      shell: bash
+      run: pipenv install
