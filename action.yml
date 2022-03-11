@@ -15,7 +15,7 @@ runs:
       run: pipx install pipenv
 
     - name: Setup Python environment and cache
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ steps.get-python-version.outputs.python-version }}
         cache: 'pipenv'
