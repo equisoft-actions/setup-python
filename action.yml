@@ -8,7 +8,7 @@ runs:
     - name: Get Python version
       id: get-python-version
       shell: bash
-      run: echo "::set-output name=python-version::$(cat .tool-versions | grep python | awk '{print $2}')"
+      run: echo "python-version=$(cat .tool-versions | grep python | awk '{print $2}')" >> $GITHUB_OUTPUT
 
     - name: Install pipenv
       shell: bash
