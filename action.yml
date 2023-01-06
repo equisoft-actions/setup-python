@@ -1,6 +1,8 @@
-name: Install Python dependencies with Pipenv and caching.
+name: Install Python dependencies with Pipenv or Poetry and caching.
 description: |
-  Install Python dependencies with Pipenv.
+  Install Python dependencies and caching. |
+  Dependencies manager Pipenv or Poetry is detetected using file `.tool-versions`. |
+  Caching name is defined.
 
 runs:
   using: composite
@@ -10,16 +12,51 @@ runs:
       shell: bash
       run: echo "python-version=$(cat .tool-versions | grep python | awk '{print $2}')" >> $GITHUB_OUTPUT
 
-    - name: Install pipenv
+    - name: Search Poetry
+      id: search-poetry
       shell: bash
+      run: echo "poetry-str=$(cat .tool-versions | grep poetry | awk '{print $1}')" >> $GITHUB_OUTPUT
+
+    - name: Check if poetry
+      id: check-if-poetry
+      shell: bash
+      run: echo "use-poetry=$(expr '${{ steps.search-poetry.outputs.poetry-str }}' == 'poetry')" >> $GITHUB_OUTPUT
+
+    - name: Get poetry version
+      id: get-poetry-version
+      shell: bash
+      if: ${{ steps.check-if-poetry.outputs.use-poetry == 1 }}
+      run: echo "poetry-version=$(cat .tool-versions | grep poetry | awk '{print $2}')" >> $GITHUB_OUTPUT
+
+    - name: Install poetry if selected
+      id: install-poetry-if-selected
+      shell: bash
+      if: ${{ steps.check-if-poetry.outputs.use-poetry == 1 }}
+      run: pipx install poetry==${{ steps.get-poetry-version.outputs.poetry-version }}
+
+    - name: Install pipenv if not poetry
+      id: install-pipenv-if-not-poetry
+      shell: bash
+      if: ${{ steps.check-if-poetry.outputs.use-poetry != 1 }}
       run: pipx install pipenv
+
+    - name: Get cache name
+      id: get-cache-name
+      shell: bash
+      run: if [[ ${{ steps.check-if-poetry.outputs.use-poetry }} == 1 ]]; then echo 'cache=poetry'; else echo 'cache=pipenv'; fi >> $GITHUB_OUTPUT
 
     - name: Setup Python environment and cache
       uses: actions/setup-python@v4
       with:
         python-version: ${{ steps.get-python-version.outputs.python-version }}
-        cache: 'pipenv'
+        cache: ${{ steps.get-cache-name.outputs.cache }}
 
-    - name: Install dependencies
+    - name: Install dependencies using poetry
       shell: bash
+      if: ${{ steps.check-if-poetry.outputs.use-poetry == 1 }}
+      run: poetry install --sync
+
+    - name: Install dependencies using pipenv
+      shell: bash
+      if: ${{ steps.check-if-poetry.outputs.use-poetry != 1 }}
       run: pipenv sync --dev
