@@ -4,6 +4,11 @@ description: |
   Dependencies manager Pipenv or Poetry is detetected using file `.tool-versions`. |
   Caching name is defined.
 
+outputs:
+  dependencies-manager:
+    description: "Dependencies manager selection between 'pipenv' and 'poetry'."
+    value: ${{ steps.dependencies-manager.outputs.dm }}
+
 runs:
   using: composite
   steps:
@@ -21,6 +26,11 @@ runs:
       id: check-if-poetry
       shell: bash
       run: echo "use-poetry=$(expr '${{ steps.search-poetry.outputs.poetry-str }}' == 'poetry')" >> $GITHUB_OUTPUT
+
+    - name: Dependecies Manager
+      id: dependencies-manager
+      shell: bash
+      run: if [[ ${{ steps.check-if-poetry.outputs.use-poetry }} == 1 ]]; then echo 'dm=poetry'; else echo 'dm=pipenv'; fi >> $GITHUB_OUTPUT
 
     - name: Get poetry version
       id: get-poetry-version
