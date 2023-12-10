@@ -56,7 +56,7 @@ runs:
       run: if [[ ${{ steps.check-if-poetry.outputs.use-poetry }} == 1 ]]; then echo 'cache=poetry'; else echo 'cache=pipenv'; fi >> $GITHUB_OUTPUT
 
     - name: Setup Python environment and cache
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ steps.get-python-version.outputs.python-version }}
         cache: ${{ steps.get-cache-name.outputs.cache }}
